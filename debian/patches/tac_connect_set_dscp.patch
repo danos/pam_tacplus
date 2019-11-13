@@ -1,0 +1,51 @@
+--- a/libtac/include/libtac.h
++++ b/libtac/include/libtac.h
+@@ -130,6 +130,7 @@ extern int tac_readtimeout_enable;
+ /* connect.c */
+ extern int tac_timeout;
+ 
++void tac_set_dscp(uint8_t val);
+ int tac_connect(struct addrinfo **, char **, int);
+ int tac_connect_single(struct addrinfo *, const char *, struct addrinfo *, int);
+ char *tac_ntop(const struct sockaddr *);
+--- a/libtac/lib/connect.c
++++ b/libtac/lib/connect.c
+@@ -34,6 +34,13 @@
+ /* Pointer to TACACS+ connection timeout */
+ int tac_timeout = 5;
+ 
++unsigned int tac_dscp = 0;
++
++void tac_set_dscp(uint8_t val) {
++    /* Value should already be left shifted by 2 bits (those are used for ECN) */
++    tac_dscp = val;
++}
++
+ /* Returns file descriptor of open connection
+    to the first available server from list passed
+    in server table.
+@@ -91,6 +98,24 @@ int tac_connect_single(struct addrinfo *
+         return LIBTAC_STATUS_CONN_ERR;
+     }
+ 
++    switch (server->ai_family) {
++        case AF_INET:
++            rc = setsockopt(fd, IPPROTO_IP, IP_TOS, &tac_dscp, sizeof tac_dscp);
++            break;
++        case AF_INET6:
++            rc = setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tac_dscp, sizeof tac_dscp);
++            break;
++        default:
++            rc = 0;
++    }
++    if (rc < 0) {
++        TACSYSLOG((LOG_ERR,"%s: setsockopt(%s) error: %s", __FUNCTION__,
++            server->ai_family == AF_INET ? "IP_TOS" : "IPV6_TCLASS",
++            strerror(errno)))
++        close(fd);
++        return LIBTAC_STATUS_CONN_ERR;
++    }
++
+     /* get flags for restoration later */
+     flags = fcntl(fd, F_GETFL, 0);
+ 

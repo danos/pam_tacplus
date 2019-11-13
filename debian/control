@@ -1,30 +1,40 @@
 Source: libpam-tacplus
 Section: admin
 Priority: extra
-Maintainer: Jeroen Nijhof <jeroen@jeroennijhof.nl>
-Build-Depends: debhelper (>= 9), libpam-dev, dh-autoreconf, autoconf-archive
+Maintainer: Vyatta Package Maintainers <DL-vyatta-help@att.com>
+Build-Depends: debhelper (>= 9), libpam-dev, dh-autoreconf, autoconf-archive,
+ libevent-dev
 Standards-Version: 3.9.5
 Homepage: https://github.com/jeroennijhof/pam_tacplus
 
 Package: libpam-tacplus
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libpam-runtime, libtac1
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpam-runtime, libtac3
 Description: PAM module for using TACACS+ as an authentication service
  This PAM module support authentication, authorization (account management) and
  accounting (session management) performed using TACACS+ protocol designed by
  Cisco.
 
-Package: libtac1
+Package: libtac3
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: TACACS+ protocol library 
- This library implemenents the fundamentls of the TACACS+ protocol and supports
+ This library implemenents the fundamentals of the TACACS+ protocol and supports
  authentication, authorization (account management) and accounting (session management).
 
 Package: libtac-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libtac1 (= ${binary:Version}), libc6-dev|libc-dev
+Depends: ${misc:Depends}, libtac3 (= ${binary:Version}), libevent-dev,
+ libc6-dev|libc-dev
 Description: Development files for TACACS+ protocol library 
  Contains C header files and development files for libtac, a TACACS+ protocol
  implementation.
+
+Package: libpam-tacplus-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: ${misc:Depends}, libtac3 (= ${binary:Version})
+Description: libpam-tacplus and libtac3 debugging symbols
+ The debugging symbols for libpam-tacplus and libtac3 packages.

@@ -1,0 +1,8 @@
+connect_timeout_socket_leak.patch
+tac_connect_single_individual-timeout.patch
+tac_add_attrib_pair_strlen_overflow.patch
+tac_add_attrib_return_error.patch
+tac_add_attrib_truncate.patch
+tac_add_attrib_pair_arg_cnt_overflow.patch
+tac_connect_set_dscp.patch
+read_timeout.patch
