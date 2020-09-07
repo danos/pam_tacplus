@@ -25,12 +25,13 @@ override_dh_install:
 	dh_install
 
 override_dh_auto_test:
-	mkdir -p /etc/pam.d
-	sudo cp test/test /etc/pam.d/test
-	sudo mkdir -p /etc/tacacs+/
-	sudo cp test/tac_plus.conf /etc/tacacs+
-	dh_auto_test
-	sudo rm -rf /etc/pam.d/test /etc/tacacs+/tac_plus.conf
+# Disabled on DANOS
+#	mkdir -p /etc/pam.d
+#	sudo cp test/test /etc/pam.d/test
+#	sudo mkdir -p /etc/tacacs+/
+#	sudo cp test/tac_plus.conf /etc/tacacs+
+#	dh_auto_test
+#	sudo rm -rf /etc/pam.d/test /etc/tacacs+/tac_plus.conf
 
 override_dh_strip:
 	dh_strip --dbg-package=libpam-tacplus-dbg
