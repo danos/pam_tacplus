@@ -34,11 +34,3 @@ Depends: ${misc:Depends}, libtac3 (= ${binary:Version}), libc6-dev|libc-dev
 Description: Development files for TACACS+ protocol library 
  Contains C header files and development files for libtac, a TACACS+ protocol
  implementation.
-
-Package: libpam-tacplus-dbg
-Architecture: any
-Section: debug
-Priority: extra
-Depends: ${misc:Depends}, libtac3 (= ${binary:Version})
-Description: libpam-tacplus and libtac3 debugging symbols
- The debugging symbols for libpam-tacplus and libtac3 packages.

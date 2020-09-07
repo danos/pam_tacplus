@@ -32,6 +32,3 @@ override_dh_auto_test:
 #	sudo cp test/tac_plus.conf /etc/tacacs+
 #	dh_auto_test
 #	sudo rm -rf /etc/pam.d/test /etc/tacacs+/tac_plus.conf
-
-override_dh_strip:
-	dh_strip --dbg-package=libpam-tacplus-dbg
