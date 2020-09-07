@@ -1,8 +1,15 @@
-libpam-tacplus (1.6.0-1danos1) UNRELEASED; urgency=medium
+libpam-tacplus (1.6.0-1danos1) unstable; urgency=medium
 
   * Import v1.6.0 (0844a93b7cc9a53bb8f043dc63be7c7d3e4a6b8f) from upstream
+  * debian/gbp.conf: Update upstream to latest
+  * debian/rules: Disable tests on DANOS
+  * debian: Drop upstreamed patches
+  * Remove tacc dependency on crypto functions
+  * debian: Remove libevent-dev traces
+  * debian: Remove libpam-tacplus-dbg
+  * author_r: Support up to 255 attributes
 
- -- Duncan Eastoe <duncan.eastoe@att.com>  Mon, 07 Sep 2020 17:07:36 +0100
+ -- Duncan Eastoe <duncan.eastoe@att.com>  Tue, 08 Sep 2020 16:02:25 +0100
 
 libpam-tacplus (1.4.1-1) unstable; urgency=low
 
