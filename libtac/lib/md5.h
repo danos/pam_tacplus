@@ -27,19 +27,26 @@ typedef unsigned int UINT4;
 
 /* Data structure for MD5 (Message-Digest) computation */
 typedef struct {
-    UINT4 i[2];               /* number of _bits_ handled mod 2^64 */
-    UINT4 buf[4];             /* scratch buffer */
-    unsigned char in[64];     /* input buffer */
-    unsigned char digest[16]; /* actual digest after MD5Final call */
+	UINT4 i[2]; /* number of _bits_ handled mod 2^64 */
+	UINT4 buf[4]; /* scratch buffer */
+	unsigned char in[64]; /* input buffer */
+	unsigned char digest[16]; /* actual digest after MD5Final call */
 } MD5_CTX;
 
 __BEGIN_DECLS
 void MD5Init __P((MD5_CTX*));
-void MD5Update __P((MD5_CTX*, unsigned char*, UINT4));
+void MD5Update __P((MD5_CTX*, const unsigned char*, UINT4));
 void MD5Final __P((unsigned char[], MD5_CTX*));
 __END_DECLS
 
 #define MD5_LEN 16
+
+/* forward compatibility with openssl/md5.h */
+#define MD5_Init MD5Init
+#define MD5_Update MD5Update
+#define MD5_Final MD5Final
+
+#define MD5_LBLOCK	MD5_LEN
 
 #define __MD5_INCLUDE__
 #endif /* __MD5_INCLUDE__ */

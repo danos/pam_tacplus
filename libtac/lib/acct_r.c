@@ -1,5 +1,5 @@
 /* acct_r.c - Read accounting reply from server.
- * 
+ *
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
@@ -32,30 +32,31 @@
  *             LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHEN_STATUS_...
  */
-int tac_acct_read(int fd, struct areply *re) {
+int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout) {
     HDR th;
     struct acct_reply *tb = NULL;
-    int len_from_header, r, len_from_body;
+    size_t ulen_from_header, len_from_body;
+    ssize_t spacket_read;
     char *msg = NULL;
-    int timeleft;
+	int timeleft = 0;
     re->attr = NULL; /* unused */
     re->msg = NULL;
 
     if (tac_readtimeout_enable &&
-        tac_read_wait(fd,tac_timeout*1000, TAC_PLUS_HDR_SIZE,&timeleft) < 0 ) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
+        tac_read_wait(fd,timeout*1000, TAC_PLUS_HDR_SIZE,&timeleft) < 0 ) {
+        TACSYSLOG(LOG_ERR,\
+            "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
         free(tb);
         return re->status;
     }
 
-    r=read(fd, &th, TAC_PLUS_HDR_SIZE);
-    if(r < TAC_PLUS_HDR_SIZE) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: short reply header, read %d of %d: %m", __FUNCTION__,\
-            r, TAC_PLUS_HDR_SIZE))
+    spacket_read = read(fd, &th, TAC_PLUS_HDR_SIZE);
+    if(spacket_read  < TAC_PLUS_HDR_SIZE) {
+        TACSYSLOG(LOG_ERR,\
+            "%s: short reply header, read %zd of %u expected: %m", __FUNCTION__,\
+            spacket_read, TAC_PLUS_HDR_SIZE);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
         free(tb);
@@ -68,31 +69,40 @@ int tac_acct_read(int fd, struct areply *re) {
         re->msg = xstrdup(msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
         free(tb);
-        TACDEBUG((LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
-            __FUNCTION__, re->status, re->msg != NULL ? re->msg : ""))
+        TACDEBUG(LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
+            __FUNCTION__, re->status, re->msg != NULL ? re->msg : "");
         return re->status;
     }
 
-    len_from_header=ntohl(th.datalength);
-    tb=(struct acct_reply *) xcalloc(1, len_from_header);
+    ulen_from_header = ntohl(th.datalength);
+    if (ulen_from_header > TAC_PLUS_MAX_PACKET_SIZE) {
+        TACSYSLOG(LOG_ERR,\
+            "%s: length declared in the packet %zu exceeds max allowed packet size %d",\
+            __FUNCTION__,\
+            ulen_from_header, TAC_PLUS_MAX_PACKET_SIZE);
+        re->status=LIBTAC_STATUS_SHORT_HDR;
+        free(tb);
+        return re->status;
+    }
+    tb=(struct acct_reply *) xcalloc(1, ulen_from_header);
 
     /* read reply packet body */
     if (tac_readtimeout_enable &&
-        tac_read_wait(fd,timeleft,len_from_header,NULL) < 0 ) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
+        tac_read_wait(fd,timeleft,ulen_from_header,NULL) < 0 ) {
+        TACSYSLOG(LOG_ERR,\
+            "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
         free(tb);
         return re->status;
     }
 
-    r=read(fd, tb, len_from_header);
-    if(r < len_from_header) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: short reply body, read %d of %d: %m",\
+    spacket_read = read(fd, tb, ulen_from_header);
+    if(spacket_read < (ssize_t) ulen_from_header) {
+        TACSYSLOG(LOG_ERR,\
+            "%s: short reply body, read %zd of %zu: %m",\
             __FUNCTION__,\
-            r, len_from_header))
+			spacket_read, ulen_from_header);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_BODY;
         free(tb);
@@ -100,7 +110,7 @@ int tac_acct_read(int fd, struct areply *re) {
     }
 
     /* decrypt the body */
-    _tac_crypt((u_char *) tb, &th, len_from_header);
+    _tac_crypt((unsigned char *) tb, &th);
 
     /* Convert network byte order to host byte order */
     tb->msg_len  = ntohs(tb->msg_len);
@@ -110,10 +120,10 @@ int tac_acct_read(int fd, struct areply *re) {
     len_from_body=sizeof(tb->msg_len) + sizeof(tb->data_len) +
         sizeof(tb->status) + tb->msg_len + tb->data_len;
 
-    if(len_from_header != len_from_body) {
-        TACSYSLOG((LOG_ERR,\
+    if(ulen_from_header != len_from_body) {
+        TACSYSLOG(LOG_ERR,\
             "%s: inconsistent reply body, incorrect key?",\
-            __FUNCTION__))
+            __FUNCTION__);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
         free(tb);
@@ -121,25 +131,24 @@ int tac_acct_read(int fd, struct areply *re) {
     }
 
     /* save status and clean up */
-    r=tb->status;
     if(tb->msg_len) {
         msg=(char *) xcalloc(1, tb->msg_len+1);
-        bcopy((u_char *) tb+TAC_ACCT_REPLY_FIXED_FIELDS_SIZE, msg, tb->msg_len); 
+        bcopy((unsigned char *) tb+TAC_ACCT_REPLY_FIXED_FIELDS_SIZE, msg, tb->msg_len);
         msg[(int)tb->msg_len] = '\0';
         re->msg = msg;      /* Freed by caller */
     }
 
     /* server logged our request successfully */
     if (tb->status == TAC_PLUS_ACCT_STATUS_SUCCESS) {
-        TACDEBUG((LOG_DEBUG, "%s: accounted ok", __FUNCTION__))
+        TACDEBUG(LOG_DEBUG, "%s: accounted ok", __FUNCTION__);
         if (!re->msg) re->msg = xstrdup(acct_ok_msg);
         re->status = tb->status;
         free(tb);
         return re->status;
     }
 
-    TACDEBUG((LOG_DEBUG, "%s: accounting failed, server reply status=%d",\
-        __FUNCTION__, tb->status))
+    TACDEBUG(LOG_DEBUG, "%s: accounting failed, server reply status=%d",\
+        __FUNCTION__, tb->status);
     switch(tb->status) {
         case TAC_PLUS_ACCT_STATUS_FOLLOW:
             re->status = tb->status;
@@ -155,4 +164,8 @@ int tac_acct_read(int fd, struct areply *re) {
 
     free(tb);
     return re->status;
+}
+
+int tac_acct_read(int fd, struct areply *re) {
+	return tac_acct_read_timeout(fd, re, tac_timeout);
 }

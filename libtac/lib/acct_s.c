@@ -50,14 +50,14 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
 
     HDR *th;
     struct acct tb;
-    u_char user_len, port_len, r_addr_len;
+    unsigned char user_len, port_len, r_addr_len;
     struct tac_attrib *a;
     int i = 0;    /* arg count */
     int pkt_len = 0;
     int pktl = 0;
     int w;    /* write count */
-    u_char *pkt=NULL;
-    /* u_char *pktp; */             /* obsolute */
+    unsigned char *pkt=NULL;
+    /* unsigned char *pktp; */             /* obsolute */
     int ret = 0;
 
     th = _tac_req_header(TAC_PLUS_ACCT, 0);
@@ -66,16 +66,16 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     th->version=TAC_PLUS_VER_0;
     th->encryption=tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
 
-    TACDEBUG((LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s, type: %s", \
+    TACDEBUG(LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s, type: %s", \
         __FUNCTION__, user, tty, r_addr, \
         (tac_encryption) ? "yes" : "no", \
-        tac_acct_flag2str(type)))
+        tac_acct_flag2str(type));
         
-    user_len=(u_char) strlen(user);
-    port_len=(u_char) strlen(tty);
-    r_addr_len=(u_char) strlen(r_addr);
+    user_len=(unsigned char) strlen(user);
+    port_len=(unsigned char) strlen(tty);
+    r_addr_len=(unsigned char) strlen(r_addr);
 
-    tb.flags=(u_char) type;
+    tb.flags=(unsigned char) type;
     tb.authen_method=tac_authen_method;
     tb.priv_lvl=tac_priv_lvl;
     if (!*tac_login) {
@@ -96,7 +96,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     tb.r_addr_len=r_addr_len;
 
     /* allocate packet */
-    pkt=(u_char *) xcalloc(1, TAC_ACCT_REQ_FIXED_FIELDS_SIZE);
+    pkt=(unsigned char *) xcalloc(1, TAC_ACCT_REQ_FIXED_FIELDS_SIZE);
     pkt_len=sizeof(tb);
 
     /* fill attribute length fields */
@@ -104,7 +104,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     while (a) {
         pktl = pkt_len;
         pkt_len += sizeof(a->attr_len);
-        pkt = (u_char*) xrealloc(pkt, pkt_len);
+        pkt = (unsigned char*) xrealloc(pkt, pkt_len);
 
         /* see comments in author_s.c
         pktp=pkt + pkt_len;
@@ -132,7 +132,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
 #define PUTATTR(data, len) \
     pktl = pkt_len; \
     pkt_len += len; \
-    pkt = (u_char*) xrealloc(pkt, pkt_len); \
+    pkt = (unsigned char*) xrealloc(pkt, pkt_len); \
     bcopy(data, pkt + pktl, len);
 
     /* fill user and port fields */
@@ -154,26 +154,26 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     w = write(fd, th, TAC_PLUS_HDR_SIZE);
 
     if(w < TAC_PLUS_HDR_SIZE) {
-        TACSYSLOG((LOG_ERR, "%s: short write on header, wrote %d of %d: %m",\
-            __FUNCTION__, w, TAC_PLUS_HDR_SIZE))
+        TACSYSLOG(LOG_ERR, "%s: short write on header, wrote %d of %d: %m",\
+            __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
         free(pkt);
         free(th);
         return LIBTAC_STATUS_WRITE_ERR;
     }
         
     /* encrypt packet body  */
-    _tac_crypt(pkt, th, pkt_len);
+    _tac_crypt(pkt, th);
 
     /* write body */
     w=write(fd, pkt, pkt_len);
     if(w < pkt_len) {
-        TACSYSLOG((LOG_ERR, "%s: short write on body, wrote %d of %d: %m",\
-            __FUNCTION__, w, pkt_len))
+        TACSYSLOG(LOG_ERR, "%s: short write on body, wrote %d of %d: %m",\
+            __FUNCTION__, w, pkt_len);
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 
     free(pkt);
     free(th);
-    TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
+    TACDEBUG(LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret);
     return ret;
 }

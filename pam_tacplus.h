@@ -39,11 +39,11 @@
 
 /* pam_tacplus major, minor and patchlevel version numbers */
 #define PAM_TAC_VMAJ 1
-#define PAM_TAC_VMIN 3
-#define PAM_TAC_VPAT 8
+#define PAM_TAC_VMIN 6
+#define PAM_TAC_VPAT 0
 
 #ifndef PAM_EXTERN
-  #define PAM_EXTERN extern
+#define PAM_EXTERN extern
 #endif
 
 #endif  /* PAM_TACPLUS_H */
