@@ -2,8 +2,7 @@ Source: libpam-tacplus
 Section: admin
 Priority: extra
 Maintainer: Vyatta Package Maintainers <DL-vyatta-help@att.com>
-Build-Depends: debhelper (>= 9), libpam-dev, dh-autoreconf, autoconf-archive,
- libevent-dev
+Build-Depends: debhelper (>= 9), libpam-dev, dh-autoreconf, autoconf-archive
 Standards-Version: 3.9.5
 Homepage: https://github.com/jeroennijhof/pam_tacplus
 
@@ -31,8 +30,7 @@ Description: TACACS+ client program
 Package: libtac-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libtac3 (= ${binary:Version}), libevent-dev,
- libc6-dev|libc-dev
+Depends: ${misc:Depends}, libtac3 (= ${binary:Version}), libc6-dev|libc-dev
 Description: Development files for TACACS+ protocol library 
  Contains C header files and development files for libtac, a TACACS+ protocol
  implementation.
