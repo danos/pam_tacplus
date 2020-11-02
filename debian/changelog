@@ -1,3 +1,35 @@
+libpam-tacplus (1.6.1-1danos1) unstable; urgency=medium
+
+  [ Paweł Krawczyk ]
+  * Create codeql-analysis.yml
+  * Create ossar-analysis.yml
+  * Trigger scan
+
+  [ Duncan Eastoe ]
+  * configure.ac Remove tacc dep. on crypto functions
+  * author_r.c: Support receiving 255 attributes
+  * connect.c: Use common cleanup on DSCP sockopt err
+
+  [ Paweł Krawczyk ]
+  * Delete ossar-analysis.yml
+  * Update codeql-analysis.yml
+  * Add apt and configure
+
+  [ Duncan Eastoe ]
+  * magic.c: check for failure of RAND_[pseudo_]bytes
+  * pam_tacplus.c: Fallback to using PID as task ID
+
+  [ Paweł Krawczyk ]
+  * CVE-2020-27743
+  * CVE-2020-27743
+  * CVE-2020-27743
+
+  [ Duncan Eastoe ]
+  * debian: Drop upstreamed patches
+  * debian/gbp.conf: update upstream to v1.6.1
+
+ -- Duncan Eastoe <duncan.eastoe@att.com>  Mon, 02 Nov 2020 17:48:21 +0000
+
 libpam-tacplus (1.6.0-1danos1) unstable; urgency=medium
 
   * Import v1.6.0 (0844a93b7cc9a53bb8f043dc63be7c7d3e4a6b8f) from upstream
